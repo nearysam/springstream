@@ -81,6 +81,7 @@ nav:
     - Report Issues: https://github.com/nearysam/springstream/issues
     - Examples:
         - examples/intro.ipynb
+        - examples/ipyleaflet.ipynb
     - API Reference:
           - springstream module: springstream.md
           - common module: common.md
