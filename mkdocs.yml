@@ -82,6 +82,7 @@ nav:
     - Examples:
         - examples/intro.ipynb
         - examples/ipyleaflet.ipynb
+        - examples/lab7.ipynb
     - API Reference:
           - springstream module: springstream.md
           - common module: common.md
