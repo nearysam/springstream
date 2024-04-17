@@ -91,3 +91,35 @@ class Map(ipyleaflet.Map):
                 data = shp.__geo_interface__
 
         self.add_geojson(data, name, **kwargs)
+
+    def add_image(self, url, bounds, name = "image", **kwargs):
+        """Adds an image overlay to OpenStreetMap map
+
+        Args:
+            url (str): URL for image
+            bounds (list): Upper right and lower left bounds of image
+            name (str, optional): Name of image. Defaults to "image".
+        """       
+        layer = ipyleaflet.ImageOverlay(url=url, bounds=bounds, name=name, **kwargs)
+        self.add(layer)
+    
+    def add_raster(self, data, name="raster", zoom_to_layer=True, **kwargs):
+        """Adds raster layer to map.
+
+        Args:
+            data (str): The file path to raster data.
+            name (str, optional): Name of layer. Defaults to "raster".
+        """
+
+        try:
+            from localtileserver import TileClient, get_leaflet_tile_layer
+        except ImportError:
+            raise ImportError("Must install 'localtileserver' package.")
+
+        client = TileClient(data)
+        layer = get_leaflet_tile_layer(client, name=name, **kwargs)
+        self.add(layer)
+
+        if zoom_to_layer:
+            self.center = client.center()
+            self.zoom = client.default_zoom
