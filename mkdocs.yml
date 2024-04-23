@@ -50,7 +50,7 @@ plugins:
           execute: True
           allow_errors: false
           ignore: ["conf.py"]
-          execute_ignore: ["*ignore.ipynb", "lab7.ipynb", "lab8.ipynb"]
+          execute_ignore: ["*ignore.ipynb", "lab7.ipynb", "lab8.ipynb", "lab9.ipynb", "folium.ipynb"]
           
 markdown_extensions:
     - admonition
@@ -84,6 +84,7 @@ nav:
         - examples/ipyleaflet.ipynb
         - examples/lab7.ipynb
         - examples/lab8.ipynb
+        - examples/lab9.ipynb
     - API Reference:
           - springstream module: springstream.md
           - common module: common.md
