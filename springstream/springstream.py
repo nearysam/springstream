@@ -14,26 +14,41 @@ class Map(ipyleaflet.Map):
     """ 
     default_styles = {
         "boat_launch_access": {
-            'fillColor': 'green',
+            'fillColor': 'orange',
             'color': 'black',
+            'radius': 8,
             'weight': 1,
             'opacity': 1,
-            'fillOpacity': 0.5
+            'fillOpacity': 1.0
         },
         "us_se_counties": {
-            'fillColor': 'blue',
+            'fillColor': 'white',
             'color': 'black',
-            'weight': 1,
-            'opacity': 0.5,
-            'fillOpacity': 0.5
+            'weight': 0.5,
+            'opacity': 1.0,
+            'fillOpacity': 0.1
         },
         "tn_fishing_permit": {
             'fillColor': 'red',
             'color': 'black',
             'weight': 1,
             'opacity': 1,
-            'fillOpacity': 0.5
-        }
+            'fillOpacity': 1.0
+        },
+        "us_se_parks": {
+            'fillColor': 'blue',
+            'color': 'black',
+            'weight': 1,
+            'opacity': 1,
+        },
+        "fishing_access": {
+            'fillColor': 'yellow',
+            'color': 'black',
+            'radius': 10,
+            'weight': 1,
+            'opacity': 1,
+        },
+        
     }
 
     def __init__(self,center = [35.96, -83.46], zoom = 10, **kwargs):
@@ -68,7 +83,11 @@ class Map(ipyleaflet.Map):
                 style = self.default_styles["us_se_counties"]
             elif name.lower().startswith("tn fishing permit"):
                 style = self.default_styles["tn_fishing_permit"]
-            
+            elif name.lower().startswith("us se parks"):
+                style = self.default_styles["us_se_parks"]
+            elif name.lower().startswith("fishing access"):
+                style = self.default_styles["fishing_access"]
+        
         import shapefile
         import json
 
