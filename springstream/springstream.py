@@ -3,22 +3,82 @@
 import ipyleaflet
 from ipyleaflet import basemaps
 import ipywidgets as widgets
+import geopandas as gpd
 
 class Map(ipyleaflet.Map):
+    
     """This is a map class that is inherited from ipyleaflet
 
     Args:
         ipyleaflet (Map): ipyleaflet.Map class
-    """    
+    """ 
+    default_styles = {
+        "boat_launch_access": {
+            'fillColor': 'green',
+            'color': 'black',
+            'weight': 1,
+            'opacity': 1,
+            'fillOpacity': 0.5
+        },
+        "us_se_counties": {
+            'fillColor': 'blue',
+            'color': 'black',
+            'weight': 1,
+            'opacity': 0.5,
+            'fillOpacity': 0.5
+        },
+        "tn_fishing_permit": {
+            'fillColor': 'red',
+            'color': 'black',
+            'weight': 1,
+            'opacity': 1,
+            'fillOpacity': 0.5
+        }
+    }
+
     def __init__(self,center = [35.96, -83.46], zoom = 10, **kwargs):
         super().__init__(center = center, zoom = zoom,**kwargs)
         self.add_control(ipyleaflet.LayersControl())
-    """Initialize the map.
+        """Initialize the map.
 
         Args:
             center (list, optional): Set the center of the map. Defaults to [35.96, -83.46], Knoxville Long and Lat.
             zoom (int, optional): Set zoom level of the map. Defaults to 10.
         """
+    
+    def add_shp(self, data, name="shp", style=None, **kwargs):
+        """Adds a shapefile to the current map.
+
+        Args:
+            data (str or dict): The path to the shapefile as a string, or a dictionary representing the shapefile.
+        name (str, optional): The name of the layer. Defaults to "us_counties.shp".
+        style (dict, optional): The style to apply to the layer. Defaults to None.
+        **kwargs: Arbitrary keyword arguments.
+
+        Raises:
+            TypeError: If the data is neither a string nor a dictionary representing a shapefile.
+
+        Returns:
+            None
+        """
+        if style is None:
+            if name.lower().startswith("boat"):
+                style = self.default_styles["boat_launch_access"]
+            elif name.lower().startswith("us se counties"):
+                style = self.default_styles["us_se_counties"]
+            elif name.lower().startswith("tn fishing permit"):
+                style = self.default_styles["tn_fishing_permit"]
+            
+        import shapefile
+        import json
+
+        if isinstance(data, str):
+            with shapefile.Reader(data) as shp:
+                data = shp.__geo_interface__
+
+        self.add_geojson(data, name, style=style, **kwargs)
+
+    
     def add_tile_layer(self, url, name, **kwargs):
         """Adds Tile layer
 
@@ -69,29 +129,7 @@ class Map(ipyleaflet.Map):
                 data = json.load(f)
         layer = ipyleaflet.GeoJSON(data=data, name=name, **kwargs)
         self.add(layer)
-    
-    def add_shp(self, data, name="shp", **kwargs):
-        """Adds a shapefile to the current map.
 
-        Args:
-            data (str or dict): The path to the shapefile as a string, or a dictionary representing the shapefile.
-            name (str, optional): The name of the layer. Defaults to "us_counties.shp".
-            **kwargs: Arbitrary keyword arguments.
-
-        Raises:
-            TypeError: If the data is neither a string nor a dictionary representing a shapefile.
-
-        Returns:
-            None
-        """
-        import shapefile
-        import json
-
-        if isinstance(data, str):
-            with shapefile.Reader(data) as shp:
-                data = shp.__geo_interface__
-
-        self.add_geojson(data, name, **kwargs)
 
     def add_image(self, url, bounds, name = "image", **kwargs):
         """Adds an image overlay to OpenStreetMap map
