@@ -51,7 +51,7 @@ class Map(ipyleaflet.Map):
         
     }
     
-    fishingpole_icon = ipyleaflet.Icon(icon_url = 'C:\Users\Sam\Geog422\springstream-1\docs\examples\fishingpole.png', icon_size = [32,32])
+    fishingpole_icon = ipyleaflet.Icon(icon_url = 'https://www.vhv.rs/dpng/d/374-3746788_fishing-pole-icon-fishing-pole-illustration-png-transparent.png', icon_size = [32,32])
     
     def __init__(self,center = [35.96, -83.46], zoom = 10, **kwargs):
         super().__init__(center = center, zoom = zoom,**kwargs)
