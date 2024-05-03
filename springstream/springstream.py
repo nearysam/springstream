@@ -50,7 +50,9 @@ class Map(ipyleaflet.Map):
         },
         
     }
-
+    
+    fishingpole_icon = ipyleaflet.Icon(icon_url = 'C:\Users\Sam\Geog422\springstream-1\docs\examples\fishingpole.png', icon_size = [32,32])
+    
     def __init__(self,center = [35.96, -83.46], zoom = 10, **kwargs):
         super().__init__(center = center, zoom = zoom,**kwargs)
         self.add_control(ipyleaflet.LayersControl())
@@ -94,6 +96,9 @@ class Map(ipyleaflet.Map):
         if isinstance(data, str):
             with shapefile.Reader(data) as shp:
                 data = shp.__geo_interface__
+        
+        if name.lower().startswith("fishing access"):
+            style['icon'] = fishingpole_icon
 
         self.add_geojson(data, name, style=style, **kwargs)
 
