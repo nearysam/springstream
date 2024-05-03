@@ -25,7 +25,7 @@ theme:
         repo: fontawesome/brands/github
     # logo: assets/logo.png
     # favicon: assets/favicon.png
-    features: A python package for improving trout recreation in TN and the US Southeast. This package hopes to enable users to create a "Trout Passport" interactive web application, in order to streamline state recreation data for trout fishing in the region.
+    features:
         - navigation.instant
         - navigation.tracking
         - navigation.top
