@@ -1,6 +1,3 @@
 numpy
 folium
 geopandas
-requests
-io
-json
