@@ -1,3 +1,6 @@
 numpy
-ipyleaflet
+folium
 geopandas
+requests
+io
+json

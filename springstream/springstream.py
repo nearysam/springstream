@@ -1,240 +1,140 @@
 """Main module."""
 
-import ipyleaflet
-from ipyleaflet import basemaps
-import ipywidgets as widgets
+import folium
 import geopandas as gpd
+from IPython.display import display
+import json
+import requests
+import io
 
-class Map(ipyleaflet.Map):
-    
-    """This is a map class that is inherited from ipyleaflet
+class Map:
+    """Main module for creating interactive maps using Folium."""
 
-    Args:
-        ipyleaflet (Map): ipyleaflet.Map class
-    """ 
-    default_styles = {
-        "boat_launch_access": {
-            'fillColor': 'orange',
-            'color': 'black',
-            'radius': 8,
-            'weight': 1,
-            'opacity': 1,
-            'fillOpacity': 1.0
-        },
-        "us_se_counties": {
-            'fillColor': 'white',
-            'color': 'black',
-            'weight': 0.5,
-            'opacity': 1.0,
-            'fillOpacity': 0.1
-        },
-        "tn_fishing_permit": {
-            'fillColor': 'red',
-            'color': 'black',
-            'weight': 1,
-            'opacity': 1,
-            'fillOpacity': 1.0
-        },
-        "us_se_parks": {
-            'fillColor': 'blue',
-            'color': 'black',
-            'weight': 1,
-            'opacity': 1,
-        },
-        "fishing_access": {
-            'fillColor': 'yellow',
-            'color': 'black',
-            'radius': 10,
-            'weight': 1,
-            'opacity': 1,
-        },
-        
-    }
-    
-    fishingpole_icon = ipyleaflet.Icon(icon_url = 'https://www.vhv.rs/dpng/d/374-3746788_fishing-pole-icon-fishing-pole-illustration-png-transparent.png', icon_size = [32,32])
-    
-    def __init__(self,center = [35.96, -83.46], zoom = 10, **kwargs):
-        super().__init__(center = center, zoom = zoom,**kwargs)
-        self.add_control(ipyleaflet.LayersControl())
+    def __init__(self, center=[35.52, -86.46], zoom=7):
         """Initialize the map.
 
         Args:
-            center (list, optional): Set the center of the map. Defaults to [35.96, -83.46], Knoxville Long and Lat.
-            zoom (int, optional): Set zoom level of the map. Defaults to 10.
+            center (list, optional): The center coordinates of the map. Defaults to [35.52, -86.46].
+            zoom (int, optional): The initial zoom level of the map. Defaults to 7.
         """
-    
-    def add_shp(self, data, name="shp", style=None, **kwargs):
-        """Adds a shapefile to the current map.
+        self.m = folium.Map(location=center, zoom_start=zoom)
+        self.basemap = None
+
+    def add_data_layer(self, gdf, name="Data Layer", style=None):
+        """Adds a data layer to the current map.
 
         Args:
-            data (str or dict): The path to the shapefile as a string, or a dictionary representing the shapefile.
-        name (str, optional): The name of the layer. Defaults to "us_counties.shp".
-        style (dict, optional): The style to apply to the layer. Defaults to None.
-        **kwargs: Arbitrary keyword arguments.
-
-        Raises:
-            TypeError: If the data is neither a string nor a dictionary representing a shapefile.
-
-        Returns:
-            None
+            gdf (GeoDataFrame): The GeoDataFrame containing the data to be added.
+            name (str, optional): The name of the layer. Defaults to "Data Layer".
+            style (dict, optional): The style to apply to the layer. Defaults to None.
         """
-        if style is None:
-            if name.lower().startswith("boat"):
-                style = self.default_styles["boat_launch_access"]
-            elif name.lower().startswith("us se counties"):
-                style = self.default_styles["us_se_counties"]
-            elif name.lower().startswith("tn fishing permit"):
-                style = self.default_styles["tn_fishing_permit"]
-            elif name.lower().startswith("us se parks"):
-                style = self.default_styles["us_se_parks"]
-            elif name.lower().startswith("fishing access"):
-                style = self.default_styles["fishing_access"]
-        
-        import shapefile
-        import json
-
-        if isinstance(data, str):
-            with shapefile.Reader(data) as shp:
-                data = shp.__geo_interface__
-        
-        if name.lower().startswith("fishing access"):
-            style['icon'] = fishingpole_icon
-
-        self.add_geojson(data, name, style=style, **kwargs)
-
-    
-    def add_tile_layer(self, url, name, **kwargs):
-        """Adds Tile layer
-
-        Args:
-            url (http): http supported url type
-            name (tile layer name): names inherited from ipyleaflet
-        """        
-        layer = ipyleaflet.TileLayer(url=url, name=name, **kwargs)
-        self.add(layer)
-    
-    def add_layers_control(self, position="topright"):
-        """Adds Layers control to map class
-
-        Args:
-            position (str, optional): Allows position of controls to be modified. Defaults to "topright".
-        """        
-        self.add_control(ipyleaflet.LayersControl(position=position))
-    
-    def add_basemap(self, name):
-        """Adds basemap to the current map. Defaults to Esri.WorldImagery Map.
-
-        Args:
-            name (str or object): The name of the basemap as a string, or an object representing the basemap.
-
-        Raises:
-            TypeError: If the name is neither a string nor an object representing a basemap.
-
-        Returns:
-            None
-        """
-        if isinstance(name, str):
-            url = eval(f"basemaps.{name}").build_url()
-            self.add_tile_layer(url,name)
-        else:
-            self.add(name)
-    
-    def add_geojson(self, data, name = "geojson", **kwargs):
-        """Adds geojson layer to current map. Defaults to US County vector data
-
-        Args:
-            data (geojson): The data can be entered as string or dictionary
-            name (str, optional): Layer name. Defaults to "us_counties_geojson".
-        """        
-        import json 
-       
-        if isinstance(data, str):
-            with open(data) as f:
-                data = json.load(f)
-        layer = ipyleaflet.GeoJSON(data=data, name=name, **kwargs)
-        self.add(layer)
-
-
-    def add_image(self, url, bounds, name = "image", **kwargs):
-        """Adds an image overlay to OpenStreetMap map
-
-        Args:
-            url (str): URL for image
-            bounds (list): Upper right and lower left bounds of image
-            name (str, optional): Name of image. Defaults to "image".
-        """       
-        layer = ipyleaflet.ImageOverlay(url=url, bounds=bounds, name=name, **kwargs)
-        self.add(layer)
-    
-    def add_raster(self, data, name="raster", zoom_to_layer=True, **kwargs):
-        """Adds raster layer to map.
-
-        Args:
-            data (str): The file path to raster data.
-            name (str, optional): Name of layer. Defaults to "raster".
-        """
-
         try:
-            from localtileserver import TileClient, get_leaflet_tile_layer
-        except ImportError:
-            raise ImportError("Must install 'localtileserver' package.")
+            # Convert the data to GeoJSON format
+            geojson_data = gdf.to_crs(epsg='4326').to_json()
 
-        client = TileClient(data)
-        layer = get_leaflet_tile_layer(client, name=name, **kwargs)
-        self.add(layer)
+            # Define a style function
+            def style_function(feature):
+                return style if style else {}
 
-        if zoom_to_layer:
-            self.center = client.center()
-            self.zoom = client.default_zoom
-    
-    def add_zoom_slider(
-        self, description="Zoom level", min=0, max=24, value=10, position="topright"
-    ):
-        """Adds a slider to map.
+            # Create a GeoJson layer with the style function
+            geojson_layer = folium.GeoJson(
+                geojson_data,
+                name=name,
+                style_function=style_function
+            )
 
-        Args:
-            position (str, optional): The position of slider. Defaults to "topright".
-        """
-        zoom_slider = widgets.IntSlider(
-            description=description, min=min, max=max, value=value
-        )
+            # Add the GeoJson layer to the map
+            self.m.add_child(geojson_layer)
+        except Exception as e:
+            print(f"Error adding data layer: {e}")
 
-        control = ipyleaflet.WidgetControl(widget=zoom_slider, position=position)
-        self.add(control)
-        widgets.jslink((zoom_slider, "value"), (self, "zoom"))
-    
-    def add_widget(self, widget, position="topright"):
-        """Adds a widget, imported from ipywidgets.
+    def add_shp(self, url, name="shp", style=None, icon_url=None):
+        """Adds a shapefile from a URL path to the current map.
 
         Args:
-            widget (object): Widget that you want added.
-            position (str, optional): Position of widget. Defaults to "topright".
+            url (str): The URL path to the shapefile.
+            name (str, optional): The name of the layer. Defaults to "shp".
+            style (dict, optional): The style to apply to the layer. Defaults to None.
+            icon_url (str, optional): The URL of the custom icon for markers. Defaults to None.
         """
-        control = ipyleaflet.WidgetControl(widget=widget, position=position)
-        self.add(control)
-    
-    def add_basemap_gui(self, basemaps=None, position="topright"):
-        """Adds GUI to map. Includes basemap options under 'basemap selector'
+        try:
+            # Fetch the shapefile data from the URL
+            response = requests.get(url)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Read the shapefile using geopandas
+                gdf = gpd.read_file(io.BytesIO(response.content))
+
+                # Convert the data to GeoJSON format
+                geojson_data = gdf.to_crs(epsg='4326').to_json()
+
+                # Define a style function for the GeoJSON layer
+                def style_function(feature):
+                    return style if style else {}
+
+                # Create a GeoJson layer with the style function
+                geojson_layer = folium.GeoJson(
+                    geojson_data,
+                    name=name,
+                    style_function=style_function
+                )
+                # Add the GeoJson layer to the map
+                self.m.add_child(geojson_layer)
+
+                # Add markers with custom icons if icon_url is provided
+                if icon_url:
+                    for index, row in gdf.iterrows():
+                        icon = folium.features.CustomIcon(icon_url, icon_size=(20, 20))
+                        folium.Marker([row.geometry.y, row.geometry.x], icon=icon, tooltip=row["name"]).add_to(self.m)
+
+            else:
+                print("Failed to fetch shapefile data from URL")
+        except Exception as e:
+            print(f"Error adding shapefile from URL: {e}")
+
+    def spatial_analysis(self, url1, url2):
+        """Performs spatial analysis to find intersections between two shapefiles.
 
         Args:
-            position (str, optional): Position of GUI. Defaults to "topright".
+            url1 (str): The URL path to the first shapefile.
+            url2 (str): The URL path to the second shapefile.
+
+        Returns:
+            str: The GeoJSON representation of the spatial analysis result.
         """
+        try:
+            # Read shapefiles into GeoDataFrames
+            gdf1 = gpd.read_file(url1)
+            gdf2 = gpd.read_file(url2)
 
-        basemap_selector = widgets.Dropdown(
-            options=[
-                "OpenStreetMap",
-                "OpenTopoMap",
-                "Esri.WorldImagery",
-                "Esri.NatGeoWorldMap",
-                "CartoDB.DarkMatter"
-            ],
-            description="Basemap",
-        )
+            # Perform spatial overlay to find intersections
+            intersections = gpd.overlay(gdf1, gdf2, how='intersection')
 
-        def update_basemap(change):
-            self.add_basemap(change["new"])
+            # Convert intersections to GeoJSON
+            intersections_geojson = intersections.to_crs(epsg='4326').to_json()
 
-        basemap_selector.observe(update_basemap, "value")
+            return intersections_geojson
+        except Exception as e:
+            print(f"Error performing spatial analysis: {e}")
 
-        control = ipyleaflet.WidgetControl(widget=basemap_selector, position=position)
-        self.add(control)
+    def add_tile_layer(self, tile_layer='OpenStreetMap'):
+        """Adds a tile layer to the map.
+
+        Args:
+            tile_layer (str, optional): The name of the tile layer. Defaults to 'OpenStreetMap'.
+        """
+        folium.TileLayer(tile_layer).add_to(self.m)
+
+    def add_layer_control(self):
+        """Adds layer control to the map.
+
+        Returns:
+            LayerControl: The layer control object.
+        """
+        layer_control = folium.LayerControl().add_to(self.m)
+        return layer_control
+
+    def display(self):
+        """Displays the map."""
+        return self.m
