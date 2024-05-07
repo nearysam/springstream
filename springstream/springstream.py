@@ -3,6 +3,7 @@
 import folium
 import geopandas as gpd
 from IPython.display import display
+from branca.element import Figure
 import json
 import requests
 import io
