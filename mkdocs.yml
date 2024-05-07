@@ -85,7 +85,7 @@ nav:
         - examples/lab7.ipynb
         - examples/lab8.ipynb
         - examples/lab9.ipynb
-        - examples/finalproject.ipynb
+        - examples/project.ipynb
         - examples/folium.ipynb
     - API Reference:
           - springstream module: springstream.md
